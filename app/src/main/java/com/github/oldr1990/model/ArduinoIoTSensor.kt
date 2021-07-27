@@ -1,6 +1,6 @@
 package com.github.oldr1990.model
 
-data class Sensor(
+data class ArduinoIoTSensor(
     val name: String,
     val uid: String,
     val description: String,

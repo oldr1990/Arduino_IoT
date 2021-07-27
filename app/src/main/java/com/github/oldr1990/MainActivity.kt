@@ -53,11 +53,7 @@ class MainActivity : ComponentActivity() {
                             val userID = it.arguments?.getString("userID")
                             if (userID == EMPTY_STRING || userID == null) navController.navigate(AUTH_PAGE)
                             HomeScreen()
-
-
                         }
-
-
                     }
 
                 }

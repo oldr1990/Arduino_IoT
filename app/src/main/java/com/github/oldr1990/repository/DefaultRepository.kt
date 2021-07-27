@@ -3,36 +3,29 @@ package com.github.oldr1990.repository
 import android.hardware.Sensor
 import android.util.Log
 import com.github.oldr1990.data.Constants
-import com.github.oldr1990.data.Constants.ERROR_YOU_ALREADY_AUTHORIZED
 import com.github.oldr1990.data.Constants.LOG_TAG
+import com.github.oldr1990.model.ArduinoIoTSensor
 import com.github.oldr1990.model.BMEData
 import com.github.oldr1990.model.UserEntries
 import com.github.oldr1990.util.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class DefaultRepository(
+class DefaultRepository @Inject constructor(
+    private val firestore: CollectionReference,
+    private val authApi: FirebaseAuth
 
 ) :
     RepositoryInterface {
 
-    @Inject
-    lateinit var firestore: CollectionReference
-
-    private val authApi = FirebaseAuth.getInstance()
-
     private val _authResponse = MutableStateFlow<Resource<String>>(Resource.Empty())
     override val authResponse: StateFlow<Resource<String>> = _authResponse
 
-    private val _listOfSensors = MutableStateFlow<Resource<List<Sensor>>>(Resource.Empty())
-    override val listOfSensors: StateFlow<Resource<List<Sensor>>> = _listOfSensors
+    private val _listOfSensors = MutableStateFlow<Resource<List<ArduinoIoTSensor>>>(Resource.Empty())
+    override val listOfSensors: StateFlow<Resource<List<ArduinoIoTSensor>>> = _listOfSensors
 
     private val _sensorDataResponse = MutableStateFlow<Resource<List<BMEData>>>(Resource.Empty())
     override val sensorDataResponse: StateFlow<Resource<List<BMEData>>> = _sensorDataResponse
@@ -95,9 +88,13 @@ class DefaultRepository(
                     return@addSnapshotListener
                 }
                 snapshot?.let {
-                    _listOfSensors.value = Resource.Success(snapshot.toObjects(Sensor::class.java))
+                    _listOfSensors.value = Resource.Success(snapshot.toObjects(ArduinoIoTSensor::class.java))
                 }
 
             }
+    }
+
+    override fun addSensor(sensor: Sensor) {
+        firestore.add(sensor)
     }
 }
