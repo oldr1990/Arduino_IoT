@@ -5,6 +5,14 @@ object Constants {
         const val HOME_PAGE = "home_page/"
         const val AUTH_PAGE = "authorization"
     }
+    object BottomNavigationLabels{
+        const val HOME = "Home"
+        const val PRESSURE = "Pressure"
+        const val TEMPERATURE = "Temperature"
+        const val HUMIDITY = "Humidity"
+        const val ALL = "All"
+    }
+    const val APPLICATION_NAME = "Arduino IoT"
     const val LOG_TAG = "!@#"
     const val TEST_SENSOR_TABLE_NAME = "bme280"
 

@@ -38,16 +38,16 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
     val passwordLambda: (String) -> Unit = { it -> viewModel.onPasswordChanged(it) }
 
     val registerClickListener: () -> Unit = {
-        if (email.isValidEmail()) {
-            if (password.isValidPassword()) {
+      //  if (email.isValidEmail()) {
+          //  if (password.isValidPassword()) {
                 viewModel.register(
                     UserEntries(
-                        email = email,
-                        password = password,
+                        email = email.trim(),
+                        password = password.trim(),
                     )
                 )
-            }
-        }
+       //     }
+       // }
     }
     val loginClickListener: () -> Unit = {
         if (email.isValidEmail()) {

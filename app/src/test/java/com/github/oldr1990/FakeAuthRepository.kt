@@ -15,19 +15,19 @@ import kotlinx.coroutines.flow.StateFlow
 
 class FakeAuthRepository: RepositoryInterface{
     private val _authResponse = MutableStateFlow<Resource<String>>(Resource.Empty())
-    override var isAuthorized: Boolean
-        get() = TODO("Not yet implemented")
-        set(value) {}
+    override var isAuthorized = false
     override val authResponse: StateFlow<Resource<String>> = _authResponse
-    override val listOfSensors: StateFlow<Resource<List<Sensor>>>
-        get() = TODO("Not yet implemented")
-    override val sensorDataResponse: StateFlow<Resource<List<BMEData>>>
-        get() = TODO("Not yet implemented")
 
+    private val _listOfSensors = MutableStateFlow<Resource<List<Sensor>>>(Resource.Empty())
+    override val listOfSensors: StateFlow<Resource<List<Sensor>>> = _listOfSensors
+
+    private val _sensorDataResponse = MutableStateFlow<Resource<List<BMEData>>>(Resource.Empty())
+    override val sensorDataResponse: StateFlow<Resource<List<BMEData>>> = _sensorDataResponse
 
     override fun login(user: UserEntries) {
         if (user.email.isValidEmail())
             if (user.password.isValidPassword()){
+                isAuthorized = true
                 _authResponse.value = Resource.Success(USER_ID)
             }
         else _authResponse.value = Resource.Error(ERROR_INVALID_PASSWORD)
@@ -37,6 +37,7 @@ class FakeAuthRepository: RepositoryInterface{
     override fun register(user: UserEntries) {
         if (user.email.isValidEmail())
             if (user.password.isValidPassword()){
+                isAuthorized = true
                 _authResponse.value = Resource.Success(USER_ID)
             }
             else _authResponse.value = Resource.Error(ERROR_INVALID_PASSWORD)
@@ -44,14 +45,13 @@ class FakeAuthRepository: RepositoryInterface{
     }
 
     override fun logout() {
-
+        isAuthorized = false
     }
 
     override fun getDataFromBME(from: Long, to: Long) {
-        TODO("Not yet implemented")
     }
 
     override fun getListOfSensors() {
-        TODO("Not yet implemented")
+
     }
 }

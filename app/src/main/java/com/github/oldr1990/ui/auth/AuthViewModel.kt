@@ -1,11 +1,9 @@
 package com.github.oldr1990.ui.auth
 
 
-import android.util.Log
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.oldr1990.data.Constants.LOG_TAG
 import com.github.oldr1990.model.UserEntries
 import com.github.oldr1990.repository.RepositoryInterface
 import com.github.oldr1990.util.*
@@ -48,15 +46,15 @@ class AuthViewModel @ViewModelInject constructor(
             repository.authResponse.collect { state ->
                 when (state) {
                     is Resource.Empty -> {
-                        Log.i(LOG_TAG, "viewModel empty event")
+                      //  Log.i(LOG_TAG, "viewModel empty event")
                     }
                     is Resource.Error -> {
-                        Log.i(LOG_TAG, "viewModel error event")
+                      //  Log.i(LOG_TAG, "viewModel error event")
                         isEventHandled = false
                         _authEvent.value = AuthEvent.Error(state.message.toString())
                     }
                     is Resource.Success -> {
-                        Log.i(LOG_TAG, "viewModel success event ${state.data.toString()}")
+                       // Log.i(LOG_TAG, "viewModel success event ${state.data.toString()}")
                         isEventHandled = false
                         _authEvent.value = AuthEvent.Success(state.data.toString())
                     }
@@ -66,38 +64,51 @@ class AuthViewModel @ViewModelInject constructor(
     }
 
     fun register(userEntries: UserEntries) {
-        if (!userEntries.email.trim().isValidEmail()) {
-            isEventHandled = false
-            _authEvent.value = AuthEvent.WrongEmail
-        } else if (!userEntries.password.trim().isValidPassword()) {
-            isEventHandled = false
-            _authEvent.value = AuthEvent.WrongPassword
-        } else repository.register(
-            UserEntries(
-                userEntries.email.trim(),
-                userEntries.password.trim()
-            )
-        )
-    }
-
-    fun login(userEntries: UserEntries) {
-        Log.i(LOG_TAG, "login view model")
-        if (!userEntries.email.trim().isValidEmail()) {
-            Log.i(LOG_TAG, "login view model: wrong email")
-            isEventHandled = false
-            _authEvent.value = AuthEvent.WrongEmail
-        } else if (!userEntries.password.trim().isValidPassword()) {
-            Log.i(LOG_TAG, "login view model: wrong password")
-            isEventHandled = false
-            _authEvent.value = AuthEvent.WrongPassword
-        } else {
-            Log.i(LOG_TAG, "login view model: success")
-            repository.login(
+        try{
+            if (!userEntries.email.trim().isValidEmail()) {
+                isEventHandled = false
+                _authEvent.value = AuthEvent.WrongEmail
+            } else if (!userEntries.password.trim().isValidPassword()) {
+                isEventHandled = false
+                _authEvent.value = AuthEvent.WrongPassword
+            } else repository.register(
                 UserEntries(
                     userEntries.email.trim(),
                     userEntries.password.trim()
                 )
             )
+        } catch (e: Exception){
+            _authEvent.value = AuthEvent.Error(e.message.toString())
+        }
+    }
+
+    fun login(userEntries: UserEntries) {
+        try {// Log.i(LOG_TAG, "login view model")
+                println("view model start")
+            if (!userEntries.email.isValidEmail()) {
+                println("login view model: wrong email")
+                //   Log.i(LOG_TAG, "login view model: wrong email")
+                isEventHandled = false
+                _authEvent.value = AuthEvent.WrongEmail
+            } else if (!userEntries.password.isValidPassword()) {
+                //   Log.i(LOG_TAG, "login view model: wrong password")
+                    println("login view model: wrong password")
+                isEventHandled = false
+                _authEvent.value = AuthEvent.WrongPassword
+            } else {
+                println("login view model: success")
+                //   Log.i(LOG_TAG, "login view model: success")
+                repository.login(
+                    UserEntries(
+                        userEntries.email.trim(),
+                        userEntries.password.trim()
+                    )
+                )
+                println("view model end")
+            }
+        } catch (e: Exception){
+            println("view model exception: ${e.message.toString()}")
+            _authEvent.value = AuthEvent.Error(e.message.toString())
         }
     }
 

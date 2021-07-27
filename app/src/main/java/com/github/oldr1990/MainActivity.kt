@@ -20,6 +20,7 @@ import com.github.oldr1990.data.Constants.NavigationDestinations.AUTH_PAGE
 import com.github.oldr1990.data.Constants.NavigationDestinations.HOME_PAGE
 import com.github.oldr1990.ui.auth.AuthScreen
 import com.github.oldr1990.ui.auth.AuthViewModel
+import com.github.oldr1990.ui.home.HomeScreen
 import com.github.oldr1990.ui.theme.ArduinoIoTTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -51,18 +52,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             val userID = it.arguments?.getString("userID")
                             if (userID == EMPTY_STRING || userID == null) navController.navigate(AUTH_PAGE)
-                            Card(modifier = Modifier
-                                .fillMaxSize(1f)
-                                .padding(50.dp)) {
-
-                                Button(onClick = { navController.navigate(AUTH_PAGE) }, ) {
-                                    Text(
-                                        text = "Вы авторизованы $userID",
-                                        modifier = Modifier.fillMaxSize(1f),
-                                        textAlign = TextAlign.Center,
-                                    )
-                                }
-                            }
+                            HomeScreen()
 
 
                         }

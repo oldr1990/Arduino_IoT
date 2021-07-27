@@ -9,14 +9,23 @@ import com.github.oldr1990.model.BMEData
 import com.github.oldr1990.model.UserEntries
 import com.github.oldr1990.util.Resource
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DefaultRepository () :
+class DefaultRepository(
+
+) :
     RepositoryInterface {
+
+    @Inject
+    lateinit var firestore: CollectionReference
+
     private val authApi = FirebaseAuth.getInstance()
 
     private val _authResponse = MutableStateFlow<Resource<String>>(Resource.Empty())
@@ -32,16 +41,15 @@ class DefaultRepository () :
 
     override fun login(user: UserEntries) {
         try {
+            if (authApi.currentUser != null) authApi.signOut()
             authApi.signInWithEmailAndPassword(user.email, user.password)
                 .addOnCompleteListener {
-
-                        if (it.isSuccessful) {
-                            isAuthorized = true
-                            Log.i(LOG_TAG, "login succeed")
-                            _authResponse.value = Resource.Success(authApi.uid.toString())
-                        } else
-                            _authResponse.value = Resource.Error(it.exception?.message.toString())
-
+                    if (it.isSuccessful) {
+                        isAuthorized = true
+                        Log.i(LOG_TAG, "login succeed")
+                        _authResponse.value = Resource.Success(authApi.uid.toString())
+                    } else
+                        _authResponse.value = Resource.Error(it.exception?.message.toString())
                 }
         } catch (e: Exception) {
             _authResponse.value = (Resource.Error(e.message.toString()))
@@ -50,26 +58,25 @@ class DefaultRepository () :
     }
 
     override fun register(user: UserEntries) {
-        if (authApi.currentUser == null) {
-            try {
-                authApi.createUserWithEmailAndPassword(user.email, user.password)
-                    .addOnCompleteListener {
-                        if (it.isSuccessful) CoroutineScope(Dispatchers.IO).launch {
-                            isAuthorized = true
-                            _authResponse.value = Resource.Success(authApi.uid.toString())
-                        }
-                        else
-                            _authResponse.value = Resource.Error(it.exception?.message.toString())
-                    }
-            } catch (e: Exception) {
-                _authResponse.value = Resource.Error(e.message.toString())
-            }
-        } else _authResponse.value = Resource.Error(ERROR_YOU_ALREADY_AUTHORIZED)
+        try {
+            if (authApi.currentUser != null) authApi.signOut()
+            authApi.createUserWithEmailAndPassword(user.email, user.password)
+                .addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        isAuthorized = true
+                        _authResponse.value = Resource.Success(authApi.uid.toString())
+                    } else
+                        _authResponse.value = Resource.Error(it.exception?.message.toString())
+                }
+        } catch (e: Exception) {
+            _authResponse.value = Resource.Error(e.message.toString())
+        }
     }
 
     override fun logout() {
         authApi.signOut()
-        if (authApi.currentUser != null) _authResponse.value = Resource.Error(Constants.ERROR_UNKNOWN)
+        if (authApi.currentUser != null) _authResponse.value =
+            Resource.Error(Constants.ERROR_UNKNOWN)
         else {
             isAuthorized = false
             _authResponse.value = Resource.Error(Constants.YOU_SIGNOUT)
@@ -81,6 +88,16 @@ class DefaultRepository () :
     }
 
     override fun getListOfSensors() {
+        firestore.whereEqualTo("uid", authApi.currentUser?.uid ?: "")
+            .addSnapshotListener { snapshot, error ->
+                error?.let {
+                    _listOfSensors.value = Resource.Error(it.message.toString())
+                    return@addSnapshotListener
+                }
+                snapshot?.let {
+                    _listOfSensors.value = Resource.Success(snapshot.toObjects(Sensor::class.java))
+                }
 
+            }
     }
 }

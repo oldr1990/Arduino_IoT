@@ -2,6 +2,7 @@ package com.github.oldr1990.model
 
 data class Sensor(
     val name: String,
-    val id: String,
-    val description: String
+    val uid: String,
+    val description: String,
+    val id: String
 )

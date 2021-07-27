@@ -27,7 +27,8 @@ object MainModule {
     }
 
     @Provides
-    fun provideAuthRepository(): RepositoryInterface = DefaultRepository()
+    fun provideAuthRepository(): RepositoryInterface =
+        DefaultRepository()
 
     @Singleton
     @Provides
