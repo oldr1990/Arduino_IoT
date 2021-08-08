@@ -1,8 +1,13 @@
 package com.github.oldr1990.di
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
+import com.github.oldr1990.data.BMEDataMapper
 import com.github.oldr1990.data.Constants
-import com.github.oldr1990.repository.RepositoryInterface
 import com.github.oldr1990.repository.DefaultRepository
+import com.github.oldr1990.repository.RepositoryInterface
 import com.github.oldr1990.util.DispatcherProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
@@ -11,13 +16,21 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
 
+val Context.dataStore:  DataStore<Preferences> by preferencesDataStore(name = "arduinoiot_datastore")
+
 @InstallIn(ApplicationComponent::class)
 @Module
 object MainModule {
+
+    @Singleton
+    @Provides
+    fun provide(@ApplicationContext context: Context): DataStore<Preferences> =
+        context.dataStore
 
     @Singleton
     @Provides
@@ -27,16 +40,18 @@ object MainModule {
     @Provides
     fun provideFirebaseFirestore(): CollectionReference {
         val firestore = FirebaseFirestore.getInstance()
-        return firestore.collection(Constants.TEST_SENSOR_TABLE_NAME)
+        return firestore.collection(Constants.SENSOR_TABLE_NAME)
     }
 
     @Singleton
     @Provides
     fun provideRepository(
         firestore: CollectionReference,
-        authFirestore: FirebaseAuth
+        authFirestore: FirebaseAuth,
+        bmeMapper: BMEDataMapper,
+        dataStore: DataStore<Preferences>
     ): RepositoryInterface =
-        DefaultRepository(firestore, authFirestore)
+        DefaultRepository(firestore, authFirestore, bmeMapper, dataStore)
 
     @Singleton
     @Provides
@@ -51,3 +66,4 @@ object MainModule {
             get() = Dispatchers.Unconfined
     }
 }
+

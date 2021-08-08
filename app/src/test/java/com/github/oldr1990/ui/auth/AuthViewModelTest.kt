@@ -59,6 +59,7 @@ class AuthViewModelTest {
         val answer = when (event) {
             AuthViewModel.AuthEvent.Empty -> false
             is AuthViewModel.AuthEvent.Error -> {
+               println(event.message)
                 true
             }
             is AuthViewModel.AuthEvent.Success -> false

@@ -7,7 +7,10 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +32,7 @@ import com.github.oldr1990.util.isValidPassword
 
 @Composable
 fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
+    Log.i(Constants.LOG_TAG,"auth recomposition")
     val eventHandler = viewModel.authEvent.collectAsState()
     val email: String by viewModel.savedEmail.collectAsState()
     val password: String by viewModel.savedPassword.collectAsState()
@@ -38,16 +42,16 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
     val passwordLambda: (String) -> Unit = { it -> viewModel.onPasswordChanged(it) }
 
     val registerClickListener: () -> Unit = {
-      //  if (email.isValidEmail()) {
-          //  if (password.isValidPassword()) {
+       if (email.isValidEmail()) {
+           if (password.isValidPassword()) {
                 viewModel.register(
                     UserEntries(
                         email = email.trim(),
                         password = password.trim(),
                     )
                 )
-       //     }
-       // }
+           }
+        }
     }
     val loginClickListener: () -> Unit = {
         if (email.isValidEmail()) {
@@ -148,7 +152,6 @@ fun RegisterData(label: String, text: String, typeObserver: (String) -> Unit) {
         singleLine = true,
         label = { Text(text = label.trim()) },
         visualTransformation = transformation,
-
         )
 }
 

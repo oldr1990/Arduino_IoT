@@ -3,7 +3,8 @@ package com.github.oldr1990.data
 object Constants {
     object NavigationDestinations{
         const val HOME_PAGE = "home_page/"
-        const val AUTH_PAGE = "authorization"
+        const val AUTH_PAGE = "auth_page"
+        const val CHARTS_PAGE = "charts_page/"
     }
     object BottomNavigationLabels{
         const val HOME = "Home"
@@ -14,7 +15,8 @@ object Constants {
     }
     const val APPLICATION_NAME = "Arduino IoT"
     const val LOG_TAG = "!@#"
-    const val TEST_SENSOR_TABLE_NAME = "bme280"
+    const val SENSOR_TABLE_NAME = "sensors"
+    const val SENSORS_DATA = "collectedData"
 
     const val ERROR_INVALID_PASSWORD  = "Неверный пароль"
     const val ERROR_INVALID_EMAIL  = "Неверная электронная почта"
