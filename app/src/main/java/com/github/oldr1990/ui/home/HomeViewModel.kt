@@ -22,7 +22,7 @@ class HomeViewModel @ViewModelInject constructor(
         class Error(val message: String) : HomeScreenEvent()
         object Empty : HomeScreenEvent()
         object Loading : HomeScreenEvent()
-        object Logout : HomeScreenEvent()
+        object NotAuthorized : HomeScreenEvent()
     }
     private var isInitiated = false
     private val _listOfSensors = MutableStateFlow(listOf(MappedSensor("", "", "", "")))

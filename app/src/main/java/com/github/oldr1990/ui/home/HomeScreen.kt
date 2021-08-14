@@ -22,7 +22,6 @@ import com.github.oldr1990.ui.composes.ArduinoIoTTopAppBar
 @ExperimentalMaterialApi
 @Composable
 fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
-    viewModel.init()
     var listOfSensors by remember { mutableStateOf(listOf(MappedSensor("","","",""))) }
     val eventHandler = viewModel.homeScreenEvent.collectAsState()
     eventHandler.value.let { event ->
@@ -37,8 +36,8 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
             HomeViewModel.HomeScreenEvent.Loading -> {
                 Log.i(LOG_TAG, event.toString())
             }
-            HomeViewModel.HomeScreenEvent.Logout -> {
-                Log.i(LOG_TAG, event.toString())
+            HomeViewModel.HomeScreenEvent.NotAuthorized -> {
+             //  navController.navigate(AUTH_PAGE)
             }
             is HomeViewModel.HomeScreenEvent.Success -> {
                 listOfSensors = event.sensorFirebases
@@ -54,7 +53,9 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
             LazyColumn {
                 items(listOfSensors) { sensor ->
                     val onClickHandler: () -> Unit = {
-                        navController.navigate(CHARTS_PAGE + sensor.id)
+                        navController.navigate(CHARTS_PAGE + sensor.id){
+                            launchSingleTop = true
+                        }
                     }
                     SensorItem(sensor, onClickHandler)
                 }
@@ -69,6 +70,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                    humidityOnClick = { }, allOnClick = { })
            }*/
     )
+    viewModel.init()
 }
 
 @ExperimentalMaterialApi

@@ -16,24 +16,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 
 class AuthViewModel @ViewModelInject constructor(
     private val repository: RepositoryInterface
 ) : ViewModel() {
+
     sealed class AuthEvent {
         class Success(val userID: String) : AuthEvent()
         class Error(val message: String) : AuthEvent()
         object WrongEmail : AuthEvent()
         object WrongPassword : AuthEvent()
-        object Loading: AuthEvent()
+        object Loading : AuthEvent()
         object Empty : AuthEvent()
     }
 
     var isEventHandled = true
     private val _savedEmail = MutableStateFlow("")
     private val _savedPassword = MutableStateFlow("")
+
     val savedEmail: StateFlow<String> = _savedEmail
     val savedPassword: StateFlow<String> = _savedPassword
 
@@ -49,14 +52,21 @@ class AuthViewModel @ViewModelInject constructor(
     val authEvent: StateFlow<AuthEvent> = _authEvent
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getUserEntriesFromDataStore.collectLatest { dataStore ->
+                if (dataStore.email != Constants.EMPTY_STRING && dataStore.password != Constants.EMPTY_STRING) {
+                    _authEvent.value = AuthEvent.Loading
+                    login(dataStore)
+                }
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
             repository.authResponse.collect { state ->
                 when (state) {
                     is Resource.Empty -> {
-                        //  Log.i(LOG_TAG, "viewModel empty event")
+                        _authEvent.value = AuthEvent.Empty
                     }
                     is Resource.Error -> {
-                        //  Log.i(LOG_TAG, "viewModel error event")
                         isEventHandled = false
                         _authEvent.value = AuthEvent.Error(state.message.toString())
                     }
@@ -67,10 +77,7 @@ class AuthViewModel @ViewModelInject constructor(
                     }
                 }
             }
-            val dataStore = repository.checkDataInDataStore()
-            if (dataStore.email != Constants.EMPTY_STRING && dataStore.password != Constants.EMPTY_STRING) {
-                login(dataStore)
-            }
+
         }
     }
 
@@ -78,13 +85,13 @@ class AuthViewModel @ViewModelInject constructor(
         try {
             if (!userEntries.email.trim().isValidEmail()) {
                 isEventHandled = false
-                _authEvent.value = AuthViewModel.AuthEvent.WrongEmail
+                _authEvent.value = AuthEvent.WrongEmail
             } else if (!userEntries.password.trim().isValidPassword()) {
                 isEventHandled = false
                 _authEvent.value = AuthEvent.WrongPassword
             } else {
                 _authEvent.value = AuthEvent.Loading
-                viewModelScope.launch(Dispatchers.IO){
+                viewModelScope.launch(Dispatchers.IO) {
                     repository.register(
                         UserEntries(
                             userEntries.email.trim(),

@@ -3,8 +3,11 @@ package com.github.oldr1990.data
 object Constants {
     object NavigationDestinations{
         const val HOME_PAGE = "home_page/"
+        const val MAIN_GRAPH = "main_graph/"
         const val AUTH_PAGE = "auth_page"
         const val CHARTS_PAGE = "charts_page/"
+        const val DEFAULT_USERID = "userID"
+        const val DEFAULT_SENSOR_ID = "SENSOR_ID"
     }
     object BottomNavigationLabels{
         const val HOME = "Home"
@@ -13,6 +16,7 @@ object Constants {
         const val HUMIDITY = "Humidity"
         const val ALL = "All"
     }
+
     const val APPLICATION_NAME = "Arduino IoT"
     const val LOG_TAG = "!@#"
     const val SENSOR_TABLE_NAME = "sensors"

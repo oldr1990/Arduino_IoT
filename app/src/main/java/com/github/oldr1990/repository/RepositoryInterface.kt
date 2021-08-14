@@ -12,10 +12,12 @@ interface RepositoryInterface {
 
     var isAuthorized:Boolean
     val authResponse: StateFlow<Resource<String>>
-
+    val userEntriesFromDataStore: StateFlow<Resource<UserEntries>>
     val listOfSensors: StateFlow<Resource<List<MappedSensor>>>
 
     val sensorDataResponseMapped: StateFlow<Resource<List<MappedBMEData>>>
+
+    val getUserEntriesFromDataStore: Flow<UserEntries>
 
     fun login(user: UserEntries)
     fun register(user: UserEntries)
@@ -23,6 +25,5 @@ interface RepositoryInterface {
     fun getDataFromBME(from: Long, to: Long)
     fun getListOfSensors()
     fun addSensor(sensorFirebase: SensorFirebase): Flow<Resource<Boolean>>
-    fun checkDataInDataStore(): UserEntries
     fun addDataToFirestoreForTest(sensorsDataMapped: MappedBMEData, sensorID: String)
 }

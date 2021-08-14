@@ -1,6 +1,7 @@
 package com.github.oldr1990.ui.auth
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
@@ -15,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -24,15 +26,16 @@ import com.github.oldr1990.data.Constants
 import com.github.oldr1990.data.Constants.ERROR_INVALID_EMAIL
 import com.github.oldr1990.data.Constants.ERROR_INVALID_PASSWORD
 import com.github.oldr1990.data.Constants.LOG_TAG
-import com.github.oldr1990.data.Constants.NavigationDestinations.HOME_PAGE
+import com.github.oldr1990.data.Constants.NavigationDestinations.MAIN_GRAPH
 import com.github.oldr1990.model.UserEntries
+import com.github.oldr1990.ui.composes.CircleProgressBar
 import com.github.oldr1990.util.isValidEmail
 import com.github.oldr1990.util.isValidPassword
 
 
 @Composable
 fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
-    Log.i(Constants.LOG_TAG,"auth recomposition")
+    Log.i(Constants.LOG_TAG, "auth recomposition")
     val eventHandler = viewModel.authEvent.collectAsState()
     val email: String by viewModel.savedEmail.collectAsState()
     val password: String by viewModel.savedPassword.collectAsState()
@@ -42,15 +45,15 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
     val passwordLambda: (String) -> Unit = { it -> viewModel.onPasswordChanged(it) }
 
     val registerClickListener: () -> Unit = {
-       if (email.isValidEmail()) {
-           if (password.isValidPassword()) {
+        if (email.isValidEmail()) {
+            if (password.isValidPassword()) {
                 viewModel.register(
                     UserEntries(
                         email = email.trim(),
                         password = password.trim(),
                     )
                 )
-           }
+            }
         }
     }
     val loginClickListener: () -> Unit = {
@@ -75,19 +78,35 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
             when (response) {
                 AuthViewModel.AuthEvent.Empty -> {
                     Log.i(LOG_TAG, "Empty")
+                    loading.value = false
                 }
                 is AuthViewModel.AuthEvent.Error -> {
+                    loading.value = false
+                    Toast.makeText(LocalContext.current, response.message, Toast.LENGTH_SHORT)
+                        .show()
                     Log.i(LOG_TAG, response.message)
                 }
                 is AuthViewModel.AuthEvent.Success -> {//navigate to list of sensors
-                    Log.i(LOG_TAG, "Success authorization")
-                    navController.navigate(HOME_PAGE+ response.userID)
+                    Toast.makeText(LocalContext.current, "Success!", Toast.LENGTH_SHORT).show()
+                    loading.value = false
+                    navController.navigate(MAIN_GRAPH) {
+                        launchSingleTop = true
+                    }
                 }
                 AuthViewModel.AuthEvent.WrongEmail -> {
+                    loading.value = false
+                    Toast.makeText(LocalContext.current, ERROR_INVALID_EMAIL, Toast.LENGTH_SHORT)
+                        .show()
                     Log.i(LOG_TAG, ERROR_INVALID_EMAIL)
                 }
                 AuthViewModel.AuthEvent.WrongPassword -> {
+                    loading.value = false
+                    Toast.makeText(LocalContext.current, ERROR_INVALID_PASSWORD, Toast.LENGTH_SHORT)
+                        .show()
                     Log.i(LOG_TAG, ERROR_INVALID_PASSWORD)
+                }
+                AuthViewModel.AuthEvent.Loading -> {
+                    loading.value = true
                 }
             }
         }
@@ -132,7 +151,7 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
 
             }
         }
-        // LoadingCircle(state = loading)
+        CircleProgressBar(state = loading)
     }
 }
 
@@ -152,7 +171,7 @@ fun RegisterData(label: String, text: String, typeObserver: (String) -> Unit) {
         singleLine = true,
         label = { Text(text = label.trim()) },
         visualTransformation = transformation,
-        )
+    )
 }
 
 @Composable

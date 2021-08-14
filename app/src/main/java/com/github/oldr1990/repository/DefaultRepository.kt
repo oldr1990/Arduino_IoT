@@ -30,17 +30,31 @@ class DefaultRepository @Inject constructor(
     RepositoryInterface {
     private val emailPreferences = stringPreferencesKey("email")
     private val passwordPreferences = stringPreferencesKey("password")
+
     private val _listOfSensors =
         MutableStateFlow<Resource<List<MappedSensor>>>(Resource.Empty())
     override val listOfSensors: StateFlow<Resource<List<MappedSensor>>> = _listOfSensors
 
-    private val _sensorDataResponse = MutableStateFlow<Resource<List<MappedBMEData>>>(Resource.Empty())
-    override val sensorDataResponseMapped: StateFlow<Resource<List<MappedBMEData>>> = _sensorDataResponse
+    private val _sensorDataResponse =
+        MutableStateFlow<Resource<List<MappedBMEData>>>(Resource.Empty())
+    override val sensorDataResponseMapped: StateFlow<Resource<List<MappedBMEData>>> =
+        _sensorDataResponse
+
+    override val getUserEntriesFromDataStore: Flow<UserEntries> =
+        dataStore.data.map { data ->
+            UserEntries(
+                data[emailPreferences] ?: "",
+                data[passwordPreferences] ?: ""
+            )
+        }
 
     override var isAuthorized = false
 
     private val _authResponse = MutableStateFlow<Resource<String>>(Resource.Empty())
     override val authResponse: StateFlow<Resource<String>> = _authResponse
+
+    private val _userEntriesFromDataStore = MutableStateFlow<Resource<UserEntries>>(Resource.Empty())
+    override val userEntriesFromDataStore: StateFlow<Resource<UserEntries>> = _userEntriesFromDataStore
 
 
     override fun login(user: UserEntries) {
@@ -102,7 +116,16 @@ class DefaultRepository @Inject constructor(
                     documents.forEach {
                         val sensor = it.toObject(SensorFirebase::class.java)
                         val id = it.id
-                        sensor?.let { listOfSensors.add(MappedSensor(sensor.name,sensor.uid,sensor.description,id)) }
+                        sensor?.let {
+                            listOfSensors.add(
+                                MappedSensor(
+                                    sensor.name,
+                                    sensor.uid,
+                                    sensor.description,
+                                    id
+                                )
+                            )
+                        }
                     }
                     Log.i(LOG_TAG, "Repository.getListSensors success")
                     _listOfSensors.value =
@@ -137,23 +160,7 @@ class DefaultRepository @Inject constructor(
         }
     }
 
-    override fun checkDataInDataStore(): UserEntries {
-        var emailData = ""
-        var passwordData = ""
-        runBlocking(Dispatchers.IO) {
-            dataStore.data.collect {
-                emailData = it[emailPreferences] ?: ""
-            }
-        }
-        runBlocking(Dispatchers.IO) {
-            dataStore.data.collect {
-                passwordData = it[passwordPreferences] ?: ""
-            }
-        }
-        return UserEntries(emailData, passwordData)
-    }
-
-    override fun addDataToFirestoreForTest(sensorsDataMapped: MappedBMEData, sensorID: String){
+    override fun addDataToFirestoreForTest(sensorsDataMapped: MappedBMEData, sensorID: String) {
         val document = firestore.document(sensorID).collection(SENSORS_DATA)
         document.add(sensorsDataMapped)
     }

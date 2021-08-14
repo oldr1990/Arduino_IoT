@@ -9,16 +9,17 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navArgument
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import com.github.oldr1990.R
-import com.github.oldr1990.data.Constants.EMPTY_STRING
 import com.github.oldr1990.data.Constants.NavigationDestinations.AUTH_PAGE
 import com.github.oldr1990.data.Constants.NavigationDestinations.CHARTS_PAGE
+import com.github.oldr1990.data.Constants.NavigationDestinations.DEFAULT_SENSOR_ID
 import com.github.oldr1990.data.Constants.NavigationDestinations.HOME_PAGE
+import com.github.oldr1990.data.Constants.NavigationDestinations.MAIN_GRAPH
 import com.github.oldr1990.ui.auth.AuthScreen
 import com.github.oldr1990.ui.auth.AuthViewModel
 import com.github.oldr1990.ui.charts.ChartScreen
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     private val homeViewModel: HomeViewModel by viewModels()
     private val chartsViewModel: ChartsViewModel by viewModels()
+
     @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,21 +52,27 @@ class MainActivity : ComponentActivity() {
                         startDestination = AUTH_PAGE
                     ) {
                         composable(AUTH_PAGE) {
-                           AuthScreen(authViewModel, navController)
+                            AuthScreen(authViewModel, navController)
                         }
-                        composable(
-                            "$HOME_PAGE{userID}",
-                            arguments = listOf(navArgument("userID") { type = NavType.StringType })
+                        this.navigation(
+                            route = MAIN_GRAPH,
+                            startDestination = HOME_PAGE
                         ) {
-                            val userID = it.arguments?.getString("userID")
-                            if (userID == EMPTY_STRING || userID == null) navController.navigate(AUTH_PAGE)
-                            HomeScreen(homeViewModel,navController)
-                        }
-                        composable("$CHARTS_PAGE{sensorID}",
-                            arguments = listOf(navArgument("sensorID") { type = NavType.StringType })
-                        ){
-                            val sensorID = it.arguments?.getString("sensorID")?:""
-                            ChartScreen(sensorID, chartsViewModel)
+                            composable(
+                                HOME_PAGE,
+                            )
+                            {
+                                HomeScreen(homeViewModel, navController)
+                            }
+                            composable(
+                                "$CHARTS_PAGE{sensorID}",
+                                arguments = listOf(navArgument("sensorID") {
+                                    defaultValue = DEFAULT_SENSOR_ID
+                                })
+                            ) {
+                                val sensorID = it.arguments?.getString("sensorID") ?: ""
+                                ChartScreen(sensorID, chartsViewModel)
+                            }
                         }
                     }
 
