@@ -52,26 +52,39 @@ class AuthViewModel @ViewModelInject constructor(
     val authEvent: StateFlow<AuthEvent> = _authEvent
 
     init {
+        Log.i(LOG_TAG, "AuthViewModel")
         viewModelScope.launch(Dispatchers.IO) {
             repository.getUserEntriesFromDataStore.collectLatest { dataStore ->
+                Log.i(
+                    LOG_TAG,
+                    "AuthViewModel datastore collected: ${dataStore.email}/ ${dataStore.password}/"
+                )
+
                 if (dataStore.email != Constants.EMPTY_STRING && dataStore.password != Constants.EMPTY_STRING) {
+                    Log.i(
+                        LOG_TAG,
+                        "AuthViewModel datastore collected: not empty/"
+                    )
                     _authEvent.value = AuthEvent.Loading
                     login(dataStore)
                 }
+
             }
         }
         viewModelScope.launch(Dispatchers.IO) {
             repository.authResponse.collect { state ->
                 when (state) {
                     is Resource.Empty -> {
+                        Log.i(LOG_TAG, "viewModel empty event ")
                         _authEvent.value = AuthEvent.Empty
                     }
                     is Resource.Error -> {
+                        Log.i(LOG_TAG, "viewModel error event ")
                         isEventHandled = false
                         _authEvent.value = AuthEvent.Error(state.message.toString())
                     }
                     is Resource.Success -> {
-                        // Log.i(LOG_TAG, "viewModel success event ${state.data.toString()}")
+                         Log.i(LOG_TAG, "viewModel success event ")
                         isEventHandled = false
                         _authEvent.value = AuthEvent.Success(state.data.toString())
                     }
@@ -85,12 +98,12 @@ class AuthViewModel @ViewModelInject constructor(
         try {
             if (!userEntries.email.trim().isValidEmail()) {
                 isEventHandled = false
-                _authEvent.value = AuthEvent.WrongEmail
+                _authEvent.value = AuthViewModel.AuthEvent.WrongEmail
             } else if (!userEntries.password.trim().isValidPassword()) {
                 isEventHandled = false
-                _authEvent.value = AuthEvent.WrongPassword
+                _authEvent.value = AuthViewModel.AuthEvent.WrongPassword
             } else {
-                _authEvent.value = AuthEvent.Loading
+                _authEvent.value = AuthViewModel.AuthEvent.Loading
                 viewModelScope.launch(Dispatchers.IO) {
                     repository.register(
                         UserEntries(
@@ -101,12 +114,13 @@ class AuthViewModel @ViewModelInject constructor(
                 }
             }
         } catch (e: Exception) {
-            _authEvent.value = AuthEvent.Error(e.message.toString())
+            _authEvent.value = AuthViewModel.AuthEvent.Error(e.message.toString())
         }
     }
 
     fun login(userEntries: UserEntries) {
-        try {// Log.i(LOG_TAG, "login view model")
+        try {
+            Log.i(LOG_TAG, "login view model")
             println("view model start")
             if (!userEntries.email.isValidEmail()) {
                 println("login view model: wrong email")

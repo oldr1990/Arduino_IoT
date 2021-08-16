@@ -48,7 +48,14 @@ class DefaultRepository @Inject constructor(
             )
         }
 
-    override var isAuthorized = false
+    override val isAuthorized: Boolean
+        get() {
+        return when (_authResponse.value){
+            is Resource.Empty -> false
+            is Resource.Error -> false
+            is Resource.Success -> true
+        }
+    }
 
     private val _authResponse = MutableStateFlow<Resource<String>>(Resource.Empty())
     override val authResponse: StateFlow<Resource<String>> = _authResponse
@@ -67,7 +74,7 @@ class DefaultRepository @Inject constructor(
                 }
                 .addOnSuccessListener {
                     writeUserEntriesToDataStore(user)
-                    isAuthorized = true
+                    //isAuthorized = true
                     Log.i(LOG_TAG, "login succeed emit data")
                     _authResponse.value = Resource.Success(authApi.uid.toString())
                 }
@@ -82,7 +89,7 @@ class DefaultRepository @Inject constructor(
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
                         writeUserEntriesToDataStore(user)
-                        isAuthorized = true
+                       // isAuthorized = true
                         _authResponse.value = Resource.Success(authApi.uid.toString())
                     } else
                         _authResponse.value = (Resource.Error(it.exception?.message.toString()))
@@ -100,40 +107,42 @@ class DefaultRepository @Inject constructor(
     }
 
     override fun getListOfSensors() {
-        Log.i(LOG_TAG, "Repository.getListSensors start")
-        firestore.whereEqualTo("uid", authApi.currentUser?.uid ?: "")
-            .addSnapshotListener { snapshot, error ->
-                error?.let {
-                    Log.i(LOG_TAG, "Repository.getListSensors error")
-                    _listOfSensors.value = Resource.Error(it.message.toString())
-                    return@addSnapshotListener
-                }
-                snapshot?.let {
-
-                    val listOfSensors = ArrayList<MappedSensor>()
-                    // snapshot.toObjects(SensorFirebase::class.java).forEach{
-                    val documents = snapshot.documents
-                    documents.forEach {
-                        val sensor = it.toObject(SensorFirebase::class.java)
-                        val id = it.id
-                        sensor?.let {
-                            listOfSensors.add(
-                                MappedSensor(
-                                    sensor.name,
-                                    sensor.uid,
-                                    sensor.description,
-                                    id
-                                )
-                            )
-                        }
+        if(isAuthorized){
+            Log.i(LOG_TAG, "Repository.getListSensors start")
+            firestore.whereEqualTo("uid", authApi.currentUser?.uid ?: "")
+                .addSnapshotListener { snapshot, error ->
+                    error?.let {
+                        Log.i(LOG_TAG, "Repository.getListSensors error")
+                        _listOfSensors.value = Resource.Error(it.message.toString())
+                        return@addSnapshotListener
                     }
-                    Log.i(LOG_TAG, "Repository.getListSensors success")
-                    _listOfSensors.value =
-                        Resource.Success(listOfSensors)
-                }
+                    snapshot?.let {
 
-            }
-        Log.i(LOG_TAG, "Repository.getListSensors ends")
+                        val listOfSensors = ArrayList<MappedSensor>()
+                        // snapshot.toObjects(SensorFirebase::class.java).forEach{
+                        val documents = snapshot.documents
+                        documents.forEach {
+                            val sensor = it.toObject(SensorFirebase::class.java)
+                            val id = it.id
+                            sensor?.let {
+                                listOfSensors.add(
+                                    MappedSensor(
+                                        sensor.name,
+                                        sensor.uid,
+                                        sensor.description,
+                                        id
+                                    )
+                                )
+                            }
+                        }
+                        Log.i(LOG_TAG, "Repository.getListSensors success")
+                        _listOfSensors.value =
+                            Resource.Success(listOfSensors)
+                    }
+
+                }
+            Log.i(LOG_TAG, "Repository.getListSensors ends")
+        }
     }
 
     override fun addSensor(sensorFirebase: SensorFirebase): Flow<Resource<Boolean>> =

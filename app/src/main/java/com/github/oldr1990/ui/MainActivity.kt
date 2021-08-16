@@ -47,12 +47,14 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background,
                     modifier = Modifier.fillMaxSize(1f)
                 ) {
+                    val navigateFromAuthToHome:()->Unit = { navController.navigate(MAIN_GRAPH) }
+                    val navigateFromHomeToSensor:(String)->Unit = {}
                     NavHost(
                         navController = navController,
                         startDestination = AUTH_PAGE
                     ) {
                         composable(AUTH_PAGE) {
-                            AuthScreen(authViewModel, navController)
+                            AuthScreen(authViewModel, navController,navigateFromAuthToHome)
                         }
                         this.navigation(
                             route = MAIN_GRAPH,

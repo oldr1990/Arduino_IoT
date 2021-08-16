@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.github.oldr1990.data.Constants.LOG_TAG
+import com.github.oldr1990.data.Constants.NavigationDestinations.AUTH_PAGE
 import com.github.oldr1990.data.Constants.NavigationDestinations.CHARTS_PAGE
 import com.github.oldr1990.model.MappedSensor
 import com.github.oldr1990.ui.composes.ArduinoIoTTopAppBar
@@ -22,6 +23,7 @@ import com.github.oldr1990.ui.composes.ArduinoIoTTopAppBar
 @ExperimentalMaterialApi
 @Composable
 fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
+
     var listOfSensors by remember { mutableStateOf(listOf(MappedSensor("","","",""))) }
     val eventHandler = viewModel.homeScreenEvent.collectAsState()
     eventHandler.value.let { event ->
@@ -37,7 +39,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                 Log.i(LOG_TAG, event.toString())
             }
             HomeViewModel.HomeScreenEvent.NotAuthorized -> {
-             //  navController.navigate(AUTH_PAGE)
+               navController.navigate(AUTH_PAGE)
             }
             is HomeViewModel.HomeScreenEvent.Success -> {
                 listOfSensors = event.sensorFirebases
@@ -70,6 +72,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                    humidityOnClick = { }, allOnClick = { })
            }*/
     )
+    Log.i(LOG_TAG, "Homescreen init")
     viewModel.init()
 }
 

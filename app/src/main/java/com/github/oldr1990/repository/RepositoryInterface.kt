@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface RepositoryInterface {
 
-    var isAuthorized:Boolean
+    val isAuthorized:Boolean
     val authResponse: StateFlow<Resource<String>>
     val userEntriesFromDataStore: StateFlow<Resource<UserEntries>>
     val listOfSensors: StateFlow<Resource<List<MappedSensor>>>
