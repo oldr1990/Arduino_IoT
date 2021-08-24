@@ -21,6 +21,7 @@ object Constants {
     const val LOG_TAG = "!@#"
     const val SENSOR_TABLE_NAME = "sensors"
     const val SENSORS_DATA = "collectedData"
+    const val SENSOR_DATE_FIELD = "date"
 
     const val ERROR_INVALID_PASSWORD  = "Неверный пароль"
     const val ERROR_INVALID_EMAIL  = "Неверная электронная почта"

@@ -13,16 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.github.oldr1990.data.Constants.LOG_TAG
-import com.github.oldr1990.data.Constants.NavigationDestinations.AUTH_PAGE
-import com.github.oldr1990.data.Constants.NavigationDestinations.CHARTS_PAGE
 import com.github.oldr1990.model.MappedSensor
 import com.github.oldr1990.ui.composes.ArduinoIoTTopAppBar
 
 @ExperimentalMaterialApi
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
+fun HomeScreen(viewModel: HomeViewModel, navigateAuthScreenAfterLogout: ()-> Unit, navigateFromHomeToSensor: (String) -> Unit) {
 
     var listOfSensors by remember { mutableStateOf(listOf(MappedSensor("","","",""))) }
     val eventHandler = viewModel.homeScreenEvent.collectAsState()
@@ -39,7 +36,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                 Log.i(LOG_TAG, event.toString())
             }
             HomeViewModel.HomeScreenEvent.NotAuthorized -> {
-               navController.navigate(AUTH_PAGE)
+                navigateAuthScreenAfterLogout()
             }
             is HomeViewModel.HomeScreenEvent.Success -> {
                 listOfSensors = event.sensorFirebases
@@ -55,9 +52,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
             LazyColumn {
                 items(listOfSensors) { sensor ->
                     val onClickHandler: () -> Unit = {
-                        navController.navigate(CHARTS_PAGE + sensor.id){
-                            launchSingleTop = true
-                        }
+                       navigateFromHomeToSensor(sensor.id)
                     }
                     SensorItem(sensor, onClickHandler)
                 }

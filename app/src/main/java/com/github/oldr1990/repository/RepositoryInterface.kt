@@ -22,7 +22,7 @@ interface RepositoryInterface {
     fun login(user: UserEntries)
     fun register(user: UserEntries)
     fun logout()
-    fun getDataFromBME(from: Long, to: Long)
+    fun getDataFromBME(from: Long, sensorID: String)
     fun getListOfSensors()
     fun addSensor(sensorFirebase: SensorFirebase): Flow<Resource<Boolean>>
     fun addDataToFirestoreForTest(sensorsDataMapped: MappedBMEData, sensorID: String)

@@ -12,7 +12,7 @@ class BMEDataMapper
             humidity = entity.humidity,
             temperature = entity.temperature,
             pressure = entity.pressure,
-            date = entity.date,
+            date = entity.date.toLong(),
         )
 
     override fun mapToEntity(domainModel: BMEDataFirebase): MappedBMEData =
@@ -20,7 +20,7 @@ class BMEDataMapper
             humidity = domainModel.humidity,
             temperature = domainModel.temperature,
             pressure = domainModel.pressure,
-            date = domainModel.date,
+            date = domainModel.date.toString(),
         )
 
     fun mapListFromEntity(listToMap: List<BMEDataFirebase>): List<MappedBMEData> =

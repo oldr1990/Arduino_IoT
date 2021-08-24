@@ -13,12 +13,11 @@ import com.github.oldr1990.data.Constants.BottomNavigationLabels.TEMPERATURE
 
 @Composable
 fun ArduinoIoTBottomAppBar(
-    isItHomePage: Boolean,
     homeOnClick: () -> Unit,
     temperatureOnClick: () -> Unit,
-    pressureOnClick: ()-> Unit,
-    humidityOnClick: ()-> Unit,
-    allOnClick: ()-> Unit,
+    pressureOnClick: () -> Unit,
+    humidityOnClick: () -> Unit,
+    allOnClick: () -> Unit,
 ) {
     BottomAppBar(content = {
         BottomNavigation() {
@@ -27,34 +26,39 @@ fun ArduinoIoTBottomAppBar(
                 alwaysShowLabel = true,
                 icon = { Icon(Icons.Outlined.Home, "") },
                 selected = true,
-                onClick = homeOnClick)
+                onClick = homeOnClick
+            )
 
             BottomNavigationItem(
                 label = { Text(ALL) },
                 alwaysShowLabel = true,
                 icon = { Icon(Icons.Outlined.Build, "") },
                 selected = true,
-                onClick = allOnClick)
+                onClick = allOnClick
+            )
 
             BottomNavigationItem(
                 label = { Text(PRESSURE) },
                 alwaysShowLabel = true,
                 icon = { Icon(Icons.Outlined.Home, "") },
                 selected = true,
-                onClick = pressureOnClick)
+                onClick = pressureOnClick
+            )
 
             BottomNavigationItem(
                 label = { Text(HUMIDITY) },
                 alwaysShowLabel = true,
                 icon = { Icon(Icons.Outlined.Home, "") },
                 selected = true,
-                onClick = humidityOnClick)
+                onClick = humidityOnClick
+            )
             BottomNavigationItem(
                 label = { Text(TEMPERATURE) },
                 alwaysShowLabel = true,
                 icon = { Icon(Icons.Outlined.Home, "") },
                 selected = true,
-                onClick = temperatureOnClick)
+                onClick = temperatureOnClick
+            )
         }
 
     })

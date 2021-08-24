@@ -47,24 +47,39 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background,
                     modifier = Modifier.fillMaxSize(1f)
                 ) {
-                    val navigateFromAuthToHome:()->Unit = { navController.navigate(MAIN_GRAPH) }
-                    val navigateFromHomeToSensor:(String)->Unit = {}
+                    val navigateFromAuthToHome: () -> Unit = {
+                        navController.navigate(MAIN_GRAPH) {
+                            launchSingleTop = true
+                        }
+                    }
+                    val navigateFromHomeToSensor: (String) -> Unit = {
+                        navController.navigate(CHARTS_PAGE + it) {
+                            launchSingleTop = true
+                        }
+                    }
+                    val navigateAuthScreenAfterLogout: () -> Unit = {
+                        navController.navigate(AUTH_PAGE)
+                    }
                     NavHost(
                         navController = navController,
                         startDestination = AUTH_PAGE
                     ) {
                         composable(AUTH_PAGE) {
-                            AuthScreen(authViewModel, navController,navigateFromAuthToHome)
+                            AuthScreen(navigateFromAuthToHome, authViewModel)
                         }
                         this.navigation(
                             route = MAIN_GRAPH,
-                            startDestination = HOME_PAGE
+                            startDestination = HOME_PAGE,
                         ) {
                             composable(
                                 HOME_PAGE,
                             )
                             {
-                                HomeScreen(homeViewModel, navController)
+                                HomeScreen(
+                                    homeViewModel,
+                                    navigateAuthScreenAfterLogout,
+                                    navigateFromHomeToSensor
+                                )
                             }
                             composable(
                                 "$CHARTS_PAGE{sensorID}",

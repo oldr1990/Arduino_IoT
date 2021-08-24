@@ -10,13 +10,17 @@ import com.github.oldr1990.data.BMEDataMapper
 import com.github.oldr1990.data.Constants.EMPTY_STRING
 import com.github.oldr1990.data.Constants.LOG_TAG
 import com.github.oldr1990.data.Constants.SENSORS_DATA
+import com.github.oldr1990.data.Constants.SENSOR_DATE_FIELD
+import com.github.oldr1990.data.Constants.SENSOR_TABLE_NAME
 import com.github.oldr1990.model.MappedBMEData
 import com.github.oldr1990.model.MappedSensor
 import com.github.oldr1990.model.UserEntries
+import com.github.oldr1990.model.firebase.BMEDataFirebase
 import com.github.oldr1990.model.firebase.SensorFirebase
 import com.github.oldr1990.util.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
@@ -50,18 +54,20 @@ class DefaultRepository @Inject constructor(
 
     override val isAuthorized: Boolean
         get() {
-        return when (_authResponse.value){
-            is Resource.Empty -> false
-            is Resource.Error -> false
-            is Resource.Success -> true
+            return when (_authResponse.value) {
+                is Resource.Empty -> false
+                is Resource.Error -> false
+                is Resource.Success -> true
+            }
         }
-    }
 
     private val _authResponse = MutableStateFlow<Resource<String>>(Resource.Empty())
     override val authResponse: StateFlow<Resource<String>> = _authResponse
 
-    private val _userEntriesFromDataStore = MutableStateFlow<Resource<UserEntries>>(Resource.Empty())
-    override val userEntriesFromDataStore: StateFlow<Resource<UserEntries>> = _userEntriesFromDataStore
+    private val _userEntriesFromDataStore =
+        MutableStateFlow<Resource<UserEntries>>(Resource.Empty())
+    override val userEntriesFromDataStore: StateFlow<Resource<UserEntries>> =
+        _userEntriesFromDataStore
 
 
     override fun login(user: UserEntries) {
@@ -89,7 +95,7 @@ class DefaultRepository @Inject constructor(
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
                         writeUserEntriesToDataStore(user)
-                       // isAuthorized = true
+                        // isAuthorized = true
                         _authResponse.value = Resource.Success(authApi.uid.toString())
                     } else
                         _authResponse.value = (Resource.Error(it.exception?.message.toString()))
@@ -103,11 +109,44 @@ class DefaultRepository @Inject constructor(
         authApi.signOut()
     }
 
-    override fun getDataFromBME(from: Long, to: Long) {
+    override fun getDataFromBME(from: Long, sensorID: String) {
+        try {
+            val firestoreSensor = FirebaseFirestore.getInstance()
+                .collection("$SENSOR_TABLE_NAME/$sensorID/$SENSORS_DATA")
+            firestoreSensor.whereNotEqualTo(SENSOR_DATE_FIELD, from)
+                .addSnapshotListener { value, error ->
+                    error?.let {
+                        Log.e(LOG_TAG, it.message.toString())
+                        _sensorDataResponse.value = Resource.Error(it.message)
+                        return@addSnapshotListener
+                    }
+                    value?.let { query ->
+                        val firebaseSensorData = ArrayList<BMEDataFirebase>()
+                        //  Log.e(LOG_TAG, query.documents.toString())
+                        query.documents.forEach {
+                            Log.e(LOG_TAG, it.toString())
+                            it?.let {
+                                firebaseSensorData.add(
+                                    BMEDataFirebase(
+                                        it.get("humidity") as Float,
+                                        it.get("temperature") as Float,
+                                        it.get("pressure") as Float,
+                                        it.getLong("date") ?: 0
+                                    )
+                                )
+                            }
+                        }
+                        _sensorDataResponse.value =
+                            Resource.Success(bmeMapper.mapListFromEntity(firebaseSensorData))
+                    }
+                }
+        } catch (e: Exception) {
+            _sensorDataResponse.value = Resource.Error(e.message)
+        }
     }
 
     override fun getListOfSensors() {
-        if(isAuthorized){
+        if (isAuthorized) {
             Log.i(LOG_TAG, "Repository.getListSensors start")
             firestore.whereEqualTo("uid", authApi.currentUser?.uid ?: "")
                 .addSnapshotListener { snapshot, error ->

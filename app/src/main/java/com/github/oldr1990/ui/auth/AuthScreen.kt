@@ -21,7 +21,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.github.oldr1990.data.Constants
 import com.github.oldr1990.data.Constants.ERROR_INVALID_EMAIL
 import com.github.oldr1990.data.Constants.ERROR_INVALID_PASSWORD
@@ -33,20 +32,20 @@ import com.github.oldr1990.util.isValidPassword
 
 
 @Composable
-fun AuthScreen(viewModel: AuthViewModel, navController: NavController, navigateToHome: ()->Unit) {
+fun AuthScreen(navigateToHome: ()->Unit, authViewModel: AuthViewModel ) {
     Log.i(Constants.LOG_TAG, "auth recomposition")
-    val eventHandler = viewModel.authEvent.collectAsState()
-    val email: String by viewModel.savedEmail.collectAsState()
-    val password: String by viewModel.savedPassword.collectAsState()
+    val eventHandler = authViewModel.authEvent.collectAsState()
+    val email: String by authViewModel.savedEmail.collectAsState()
+    val password: String by authViewModel.savedPassword.collectAsState()
     val loading = rememberSaveable { mutableStateOf(false) } //loading circle state
 
-    val emailLambda: (String) -> Unit = { it -> viewModel.onEmailChanged(it) }
-    val passwordLambda: (String) -> Unit = { it -> viewModel.onPasswordChanged(it) }
+    val emailLambda: (String) -> Unit = { it -> authViewModel.onEmailChanged(it) }
+    val passwordLambda: (String) -> Unit = { it -> authViewModel.onPasswordChanged(it) }
 
     val registerClickListener: () -> Unit = {
         if (email.isValidEmail()) {
             if (password.isValidPassword()) {
-                viewModel.register(
+                authViewModel.register(
                     UserEntries(
                         email = email.trim(),
                         password = password.trim(),
@@ -59,7 +58,7 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController, navigateT
         if (email.isValidEmail()) {
             if (password.isValidPassword()) {
                 Log.e("!@#", "here call viewModel.login")
-                viewModel.login(
+                authViewModel.login(
                     UserEntries(
                         email = email,
                         password = password,
@@ -72,8 +71,8 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController, navigateT
     }
 
     eventHandler.value.let { response ->
-        if (!viewModel.isEventHandled) {
-            viewModel.isEventHandled = true
+        if (!authViewModel.isEventHandled) {
+            authViewModel.isEventHandled = true
             when (response) {
                 AuthViewModel.AuthEvent.Empty -> {
                     Log.i(LOG_TAG, "Empty")
