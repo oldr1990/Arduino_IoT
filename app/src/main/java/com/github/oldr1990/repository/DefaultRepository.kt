@@ -126,14 +126,9 @@ class DefaultRepository @Inject constructor(
                         query.documents.forEach {
                             Log.e(LOG_TAG, it.toString())
                             it?.let {
-                                firebaseSensorData.add(
-                                    BMEDataFirebase(
-                                        it.get("humidity") as Float,
-                                        it.get("temperature") as Float,
-                                        it.get("pressure") as Float,
-                                        it.getLong("date") ?: 0
-                                    )
-                                )
+                                it.toObject(BMEDataFirebase::class.java)?.let { it1 ->
+                                    firebaseSensorData.add(it1)
+                                }
                             }
                         }
                         _sensorDataResponse.value =
@@ -158,27 +153,27 @@ class DefaultRepository @Inject constructor(
                     snapshot?.let {
 
                         val listOfSensors = ArrayList<MappedSensor>()
-                        // snapshot.toObjects(SensorFirebase::class.java).forEach{
-                        val documents = snapshot.documents
-                        documents.forEach {
-                            val sensor = it.toObject(SensorFirebase::class.java)
-                            val id = it.id
-                            sensor?.let {
-                                listOfSensors.add(
-                                    MappedSensor(
-                                        sensor.name,
-                                        sensor.uid,
-                                        sensor.description,
-                                        id
+                        snapshot.toObjects(SensorFirebase::class.java).forEach {
+                            val documents = snapshot.documents
+                            documents.forEach {
+                                val sensor = it.toObject(SensorFirebase::class.java)
+                                val id = it.id
+                                sensor?.let {
+                                    listOfSensors.add(
+                                        MappedSensor(
+                                            sensor.name,
+                                            sensor.uid,
+                                            sensor.description,
+                                            id
+                                        )
                                     )
-                                )
+                                }
                             }
+                            Log.i(LOG_TAG, "Repository.getListSensors success")
+                            _listOfSensors.value =
+                                Resource.Success(listOfSensors)
                         }
-                        Log.i(LOG_TAG, "Repository.getListSensors success")
-                        _listOfSensors.value =
-                            Resource.Success(listOfSensors)
                     }
-
                 }
             Log.i(LOG_TAG, "Repository.getListSensors ends")
         }

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 class ChartsViewModel @ViewModelInject constructor(
     private val repository: RepositoryInterface
@@ -43,7 +42,7 @@ class ChartsViewModel @ViewModelInject constructor(
 
     }
 
-    fun startTestDataInput(sensorID: String) {
+ /*   fun startTestDataInput(sensorID: String) {
         repository.addDataToFirestoreForTest(
             MappedBMEData(
                 Random.nextInt(40, 70).toFloat(),
@@ -52,5 +51,5 @@ class ChartsViewModel @ViewModelInject constructor(
                 System.currentTimeMillis().toString()
             ), sensorID
         )
-    }
+    }*/
 }

@@ -1,8 +1,12 @@
 package com.github.oldr1990.model.firebase
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class BMEDataFirebase(
-    val humidity: Float,
-    val temperature: Float,
-    val pressure: Float,
-    val date: Long,
-)
+    val humidity: String = "0.0",
+    val temperature: String= "0.0",
+    val pressure: Int = 0,
+    val date: Long = 0,
+):Parcelable
